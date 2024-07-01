@@ -61,7 +61,7 @@ jobs:
       - name: Summarize deployment statuses
         run: |
           summary="Deployment status summary:\n"
-          ls deployment_status
+          ls status_.txt
           for file in deployment_status/status_*.txt; do
             entry=$(basename "$file" .txt | cut -d'_' -f2)
             status=$(cat "$file")
