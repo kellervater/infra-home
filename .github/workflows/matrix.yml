@@ -40,7 +40,6 @@ jobs:
         with:
           path: deployment_status
           key: deploy-status-${{ matrix.entry }}
-          restore-keys: deploy-status-
 
   summarize:
     needs: deploy
