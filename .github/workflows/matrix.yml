@@ -53,16 +53,15 @@ jobs:
       - name: Download deployment status artifacts
         run: |
           mkdir -p deployment_status
-          echo $(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
-            | jq -r '.artifacts[].name')
           for artifact in $(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             | jq -r '.artifacts[].name'); do
             if [[ "$artifact" == deployment-status-${{ github.run_id }}-${{ github.run_attempt }}-* ]]; then
+              echo "names match $artifact"
               gh run download ${{ github.run_id }} -n "$artifact" --dir deployment_status
+            else
+              echo "names don't match. looking for: deployment-status-${{ github.run_id }}-${{ github.run_attempt }}-* but got $artifact"
             fi
           done
 
