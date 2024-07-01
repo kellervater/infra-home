@@ -32,15 +32,15 @@ jobs:
       - name: Save deployment status
         if: always()
         run: |
-          mkdir -p deployment_status
-          echo "${{ matrix.entry }}=${{ job.status }}" > deployment_status/status_${{ matrix.entry }}.txt
+          echo "${{ matrix.entry }}=${{ job.status }}" > status_${{ matrix.entry }}.txt
 
       - name: Cache deployment status
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: deployment_status
+          path: status_${{ matrix.entry }}.txt
           key: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.entry }}
+
 
 
   summarize:
@@ -54,7 +54,7 @@ jobs:
       - name: Restore deployment status
         uses: actions/cache/restore@v4
         with:
-          path: deployment_status
+          path: status_*.txt
           key: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-
           restore-keys: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-
 
