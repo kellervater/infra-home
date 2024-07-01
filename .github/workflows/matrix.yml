@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:       
+        entry: [sm, saas]  # Add more entries as needed
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Your deployment step here
+      - name: Deploy to ${{ matrix.entry }}
+        run: |
+          # Your deployment script goes here
+          # Simulate deployment process and create a success/failure status
+          echo "Deploying to ${{ matrix.entry }}"
+          if [ "${{ matrix.entry }}" = "sm" ]; then
+            exit 0
+          else
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Save deployment status
+        run: |
+          mkdir -p deployment_status
+          echo "${{ matrix.entry }}=${{ job.status }}" > deployment_status/status_${{ matrix.entry }}.txt
+
+      - name: Cache deployment status
+        uses: actions/cache@v2
+        with:
+          path: deployment_status
+          key: deploy-status-${{ matrix.entry }}
+          restore-keys: deploy-status-
+
+  summarize:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Restore deployment status
+        uses: actions/cache@v2
+        with:
+          path: deployment_status
+          key: deploy-status-
+          restore-keys: deploy-status-
+
+      - name: Summarize deployment statuses
+        run: |
+          summary="Deployment status summary:\n"
+          for file in deployment_status/status_*.txt; do
+            entry=$(basename "$file" .txt | cut -d'_' -f2)
+            status=$(cat "$file")
+            summary+="$entry: $status\n"
+          done
+          echo "$summary" > summary.txt
+          echo "$summary"
+
+      - name: Post summary as a comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('summary.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
