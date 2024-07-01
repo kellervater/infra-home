@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:       
+      matrix:
         entry: [sm, saas]  # Add more entries as needed
 
     steps:
@@ -32,16 +32,15 @@ jobs:
       - name: Save deployment status
         if: always()
         run: |
-          echo "${{ matrix.entry }}=${{ job.status }}" > status_${{ matrix.entry }}.txt
+          mkdir -p deployment_status
+          echo "${{ matrix.entry }}=${{ job.status }}" > deployment_status/status_${{ matrix.entry }}.txt
 
-      - name: Cache deployment status
+      - name: Upload deployment status artifact
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/upload-artifact@v3
         with:
-          path: status_${{ matrix.entry }}.txt
-          key: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.entry }}
-
-
+          name: deployment-status-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.entry }}
+          path: deployment_status/status_${{ matrix.entry }}.txt
 
   summarize:
     if: always()
@@ -51,27 +50,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Restore deployment status
-        uses: actions/cache/restore@v4
-        with:
-          path: status_*.txt
-          key: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-
-          restore-keys: deploy-status-${{ github.run_id }}-${{ github.run_attempt }}-
+      - name: Download deployment status artifacts
+        run: |
+          mkdir -p deployment_status
+          for artifact in $(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            | jq -r '.artifacts[].name'); do
+            if [[ "$artifact" == deployment-status-${{ github.run_id }}-${{ github.run_attempt }}-* ]]; then
+              gh run download ${{ github.run_id }} -n "$artifact" --dir deployment_status
+            fi
+          done
 
       - name: Summarize deployment statuses
         run: |
           summary="Deployment status summary:\n"
-          ls status_.txt
-          for file in deployment_status/status_*.txt; do
+          for file in deployment_status/**/*.txt; do
             entry=$(basename "$file" .txt | cut -d'_' -f2)
             status=$(cat "$file")
-            echo "$entry: $status\n"
             summary+="$entry: $status\n"
           done
           echo "$summary" > summary.txt
           echo "$summary"
 
       - name: Post summary as a comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
