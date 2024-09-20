@@ -30,9 +30,11 @@ gpg --sign file.txt
 rm -rf file.txt*
 
 # Global Git Config
-CARDHOLDER_NAME=$(gpg --card-status | grep 'Name of cardholder' | awk -F ': ' '{print $2}')
+CARDHOLDER_NAME="$(gpg --card-status | grep 'Name of cardholder' | awk -F ': ' '{print $2}')"
 CARDHOLDER_EMAIL=$(gpg --card-status | grep 'General key info' | awk -F '[<>]' '{print $2}')
+GPG_KEY_ID=$(gpg --card-status | grep -oP 'sub\s+\K[^ ]+' | awk -F '/' '{print $2}')
 
-git config --global user.name $CARDHOLDER_NAME
+git config --global user.name "$CARDHOLDER_NAME"
 git config --global user.email $CARDHOLDER_EMAIL
 git config --global commit.gpgSign true
+git config --global user.signingkey $GPG_KEY_ID
