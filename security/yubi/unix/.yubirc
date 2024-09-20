@@ -1,0 +1,4 @@
+# Setup to make yubikeys work on your system (gpg-wise)
+
+export GPG_TTY=$(tty)
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
