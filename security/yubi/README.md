@@ -15,4 +15,4 @@ The windows directory contains setup guides and scripts required to get `gpg` ru
 ## Unix
 Contains simple setup guides for unix based OSs (Linux, MacOS)
 
-TODO
+> [UNIX GUIDE](./unix/README.md)
