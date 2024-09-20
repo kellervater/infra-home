@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAS_IP=169.254.105.2
+NAS_IP=192.168.0.115
 NAS_SHARE=kellerfilme
 NAS_ADDRESS=//$NAS_IP/$NAS_SHARE
 MOUNT_POINT=/mnt/nas
