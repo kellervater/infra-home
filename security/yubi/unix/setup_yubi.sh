@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script has been successfully tested on Debian 12 (as of 20.09.2024)
 
-set -eo pipefail
+set -euo pipefail
 
 # Dependencies
 sudo apt update && sudo apt upgrade -y && \
