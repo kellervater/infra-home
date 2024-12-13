@@ -13,5 +13,8 @@ The script [setup_yubi.sh](./setup_yubi.sh) assumes you have a smartcard with fo
 ## Automated script
 If above's assumptions are fullfilled you can simply run the script [setup_yubi.sh](./setup_yubi.sh):
 ```shell
+# If you've downloaded the repository
 ./setup_yubi.sh
+# or if you want to directly execute it
+curl https://raw.githubusercontent.com/kellervater/infra-home/refs/heads/main/security/yubi/unix/setup_yubi.sh | bash
 ```
